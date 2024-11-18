@@ -1,5 +1,6 @@
-import java.util.Random;
-import java.util.Scanner;
+import org.w3c.dom.ls.LSOutput;
+
+import java.util.*;
 
 public class Game {
     private char[][] board;
@@ -18,6 +19,67 @@ public class Game {
                 {' ', '|', ' ', '|', ' '},
         };
     }
+
+    public static boolean isPositionFree(char[][] board, int pos) {
+        switch (pos) {
+            case 1:
+                return board[0][0] == ' ';
+            case 2:
+                return board[0][2] == ' ';
+            case 3:
+                return board[0][4] == ' ';
+            case 4:
+                return board[2][0] == ' ';
+            case 5:
+                return board[2][2] == ' ';
+            case 6:
+                return board[2][4] == ' ';
+            case 7:
+                return board[4][0] == ' ';
+            case 8:
+                return board[4][2] == ' ';
+            case 9:
+                return board[4][4] == ' ';
+            default:
+                return false;
+        }
+    }
+        List<Integer> userPositions = new ArrayList<>();
+        List<Integer> computerPositions = new ArrayList<>();
+
+
+            public String checkWinner () {
+                List<Integer> topRow = Arrays.asList(1, 2, 3);
+                List<Integer> midRow = Arrays.asList(4, 5, 6);
+                List<Integer> botRow = Arrays.asList(7, 8, 9);
+                List<Integer> leftCol = Arrays.asList(1, 4, 7);
+                List<Integer> midCol = Arrays.asList(2, 5, 8);
+                List<Integer> rightCol = Arrays.asList(3, 6, 9);
+                List<Integer> cross1 = Arrays.asList(1, 5, 9);
+                List<Integer> cross2 = Arrays.asList(3, 5, 7);
+
+                List<List<Integer>> winning = new ArrayList<>();
+                winning.add(topRow);
+                winning.add(midRow);
+                winning.add(botRow);
+                winning.add(leftCol);
+                winning.add(midCol);
+                winning.add(rightCol);
+                winning.add(cross1);
+                winning.add(cross2);
+
+                for (List<Integer> l : winning) {
+                    if (userPositions.containsAll(l)) {
+                        return "Congratulations! You won!";
+                    } else if (computerPositions.containsAll(l)) {
+                        return "Computer wins!";
+                    } else if (userPositions.size() + computerPositions.size() == 9) {
+                        return "Draw!";
+                    }
+                }
+                return "";
+            }
+
 
     public void run() {
         Scanner sc = new Scanner(System.in);
@@ -65,71 +127,113 @@ public class Game {
                 System.out.println(player1.getName() + ", enter a position to place your mark in (1-9):");
                 int pos = sc.nextInt();
                 placeMark(board, pos, player1);
+                userPositions.add(pos); //Add position to player list
             } else {
                 if (isSinglePlayer) {
-                    int pos = computer.makeRandomMove();
+                    int pos;
+                    do {
+                        pos = computer.makeRandomMove();
+                    } while (!isPositionFree(board, pos));
                     System.out.println("Computer chose: " + pos);
                     placeMark(board, pos, computer);
+                    computerPositions.add(pos); // Add position to computer list
                 } else {
                     System.out.println(player2.getName() + ", enter a position to place your mark in (1-9):");
                     int pos = sc.nextInt();
                     placeMark(board, pos, player2);
+                    userPositions.add(pos);
                 }
             }
 
             Board.printBoard(board);
 
 
+            String result = checkWinner();
+            if (!result.equals("")) {
+                System.out.println(result);
+                break; // End game if we have a winner or draw
+            }
+
             player1Turn = !player1Turn;
         }
+
+        System.out.println("Thank you for playing!");
     }
 
-    public void playerTurn(User user) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println(user.getName() + "Enter the number of the cell you want to place your mark in (1-9): ");
-        int pos = sc.nextInt();
-
-        System.out.println("Chosen position:" + pos);
-        placeMark(board, pos, user);
-        Board.printBoard(board);
-    }
 
     public static void placeMark(char[][] board, int pos, User user) {
         char symbol = user.getSymbol();
+        boolean validPosition = false;
 
-        switch (pos) {
-            case 1:
-                board[0][0] = symbol;
-                break;
-            case 2:
-                board[0][2] = symbol;
-                break;
-            case 3:
-                board[0][4] = symbol;
-                break;
-            case 4:
-                board[2][0] = symbol;
-                break;
-            case 5:
-                board[2][2] = symbol;
-                break;
-            case 6:
-                board[2][4] = symbol;
-                break;
-            case 7:
-                board[4][0] = symbol;
-                break;
-            case 8:
-                board[4][2] = symbol;
-                break;
-            case 9:
-                board[4][4] = symbol;
-                break;
-            default:
-                System.out.println("Position not free. Try again");
-                break;
+        while (!validPosition) {
+            switch (pos) {
+                case 1:
+                    if (board[0][0] == ' ') {
+                        board[0][0] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 2:
+                    if (board[0][2] == ' ') {
+                        board[0][2] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 3:
+                    if (board[0][4] == ' ') {
+                        board[0][4] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 4:
+                    if (board[2][0] == ' ') {
+                        board[2][0] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 5:
+                    if (board[2][2] == ' ') {
+                        board[2][2] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 6:
+                    if (board[2][4] == ' ') {
+                        board[2][4] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 7:
+                    if (board[4][0] == ' ') {
+                        board[4][0] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 8:
+                    if (board[4][2] == ' ') {
+                        board[4][2] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                case 9:
+                    if (board[4][4] == ' ') {
+                        board[4][4] = symbol;
+                        validPosition = true;
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid position. Try again.");
+                    return;
+            }
+            if (!validPosition) {
+                System.out.println("Position not free. Choose another position (1-9): ");
+                Scanner sc = new Scanner(System.in);
+                pos = sc.nextInt();
+            }
         }
     }
+
 }
+
 
 
