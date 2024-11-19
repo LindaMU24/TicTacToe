@@ -11,10 +11,11 @@ public class Game {
     private int player1Wins = 0;
     private int player2Wins = 0;
     private int computerWins = 0;
+    private int draw = 0;
 
 
     public Game() {
-        this.board = new char[][]{
+        this.board = new char[][]{ //Board graphic
                 {' ', '|', ' ', '|', ' '},
                 {'-', '+', '-', '+', '-'},
                 {' ', '|', ' ', '|', ' '},
@@ -23,6 +24,7 @@ public class Game {
         };
     }
 
+    //Positions to put the mark in
     public static boolean isPositionFree(char[][] board, int pos) {
         switch (pos) {
             case 1:
@@ -51,7 +53,7 @@ public class Game {
         List<Integer> computerPositions = new ArrayList<>();
         List<Integer> player2Positions = new ArrayList<>();
 
-
+            //Winning lines
             public String checkWinner () {
                 List<Integer> topRow = Arrays.asList(1, 2, 3);
                 List<Integer> midRow = Arrays.asList(4, 5, 6);
@@ -72,6 +74,7 @@ public class Game {
                 winning.add(cross1);
                 winning.add(cross2);
 
+                //Congratulation plus add a win to the players list
                 for (List<Integer> l : winning) {
                     if (player1Positions.containsAll(l)) {
                         player1Wins++;
@@ -86,11 +89,13 @@ public class Game {
                 }
 
                 if (player1Positions.size() + (isSinglePlayer ? computerPositions.size() : player2Positions.size()) == 9) {
+                    draw++;
                     return "Draw!";
                 }
               return "";
           }
 
+          //Setup start of game, choose players, add name.
 public void setupGame() {
     Scanner sc = new Scanner(System.in);
 
@@ -116,7 +121,7 @@ public void setupGame() {
 
     }
 }
-
+    //Run game, random who is starting, play game. (Play again starts here.)
     public void run() {
         Scanner sc = new Scanner(System.in);
         Board.printBoard(board);
@@ -132,7 +137,7 @@ public void setupGame() {
                 System.out.println(player2.getName() + " starts playing!");
             }
         }
-
+            //Place mark, check if available, if not ask to choose again.
         boolean player1Turn = player1Starts;
 
         while (true) {
@@ -141,14 +146,19 @@ public void setupGame() {
                 int pos = 0;
                 while (!validPosition) {
                     System.out.println(player1.getName() + ", enter a position to place your mark in (1-9):");
-                    pos = sc.nextInt();
+                    String input = sc.next();
 
-                    if (isPositionFree(board, pos)) {
-                        placeMark(board, pos, player1);
-                        player1Positions.add(pos);
-                        validPosition = true;
+                    if (isValidInput(input)) {  // Check if value is correct
+                        pos = Integer.parseInt(input);
+                        if (isPositionFree(board, pos)) {
+                            placeMark(board, pos, player1);
+                            player1Positions.add(pos);
+                            validPosition = true;
+                        } else {
+                            System.out.println("Position not free. Choose another position (1-9):");
+                        }
                     } else {
-                        System.out.println("Position not free. Choose another position (1-9):");
+                        System.out.println("Invalid input. Please enter a number between 1 and 9:");
                     }
                 }
             } else {
@@ -165,71 +175,91 @@ public void setupGame() {
                     int pos = 0;
                     while (!validPosition) {
                         System.out.println(player2.getName() + ", enter a position to place your mark in (1-9):");
-                        pos = sc.nextInt();
-                        if (isPositionFree(board, pos)) {
-                            placeMark(board, pos, player2);
-                            player2Positions.add(pos);
-                            validPosition = true;
+                        String input = sc.next();
+
+                        if (isValidInput(input)) { // Check if value is correct
+                            pos = Integer.parseInt(input);
+                            if (isPositionFree(board, pos)) {
+                                placeMark(board, pos, player2);
+                                player2Positions.add(pos);
+                                validPosition = true;
+                            } else {
+                                System.out.println("Position not free. Choose another position (1-9):");
+                            }
                         } else {
-                            System.out.println("Position not free. Choose another position (1-9):");
+                            System.out.println("Invalid input. Please enter a number between 1 and 9:");
                         }
                     }
                 }
             }
 
-
+            //Show marks on board
             Board.printBoard(board);
 
-
+            //Check for winner after mark
             String result = checkWinner();
             if (!result.equals("")) {
                 System.out.println(result);
                 break; // End game if we have a winner or draw
             }
 
-            player1Turn = !player1Turn;
+            player1Turn = !player1Turn; //Other players turn
         }
         sc.nextLine();
 
+        //Ask if player wants to play again. If yes, new board, clear all marks and run.
+        // If no, show player stats.
         boolean playAgain = true;
 
         while (playAgain) {
 
-
             System.out.println("Do you want to play again? (yes/no)");
             String response = sc.nextLine().trim().toLowerCase();
 
-            if (response.equals("yes")) {
+            if (response.equals("yes") || response.equals("y") || response.equals("j")) {
+            this.board = new char[][]{
+                    {' ', '|', ' ', '|', ' '},
+                    {'-', '+', '-', '+', '-'},
+                    {' ', '|', ' ', '|', ' '},
+                    {'-', '+', '-', '+', '-'},
+                    {' ', '|', ' ', '|', ' '},
+            };
+            player1Positions.clear();
+            computerPositions.clear();
+            player2Positions.clear();
 
-                this.board = new char[][]{
-                        {' ', '|', ' ', '|', ' '},
-                        {'-', '+', '-', '+', '-'},
-                        {' ', '|', ' ', '|', ' '},
-                        {'-', '+', '-', '+', '-'},
-                        {' ', '|', ' ', '|', ' '},
-                };
-                player1Positions.clear();
-                computerPositions.clear();
-                player2Positions.clear();
-                run();
-            } else {
+            run();
+
+            } else if (response.equals("no") || response.equals("n")) {
                 playAgain = false;
+            } else {
+                System.out.println("Invalid input. Please enter yes or no:");
             }
-
-
+        }
             System.out.println("Game over! Final scores:");
             System.out.println(player1.getName() + " wins: " + player1Wins);
             if (isSinglePlayer) {
                 System.out.println("Computer wins: " + computerWins);
+                System.out.println("Draw: " + draw);
             } else {
                 System.out.println(player2.getName() + " wins: " + player2Wins);
+                System.out.println("Draw: " + draw);
             }
             System.out.println("Thanks for playing!");
+            System.exit(0); //End game
+        }
+
+
+    //Check if input is as expected
+    public static boolean isValidInput(String input) {
+        try {
+            int pos = Integer.parseInt(input);
+            return pos >= 1 && pos <= 9;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
-
-
-
+    //Place mark if free based on this scheme
     public static void placeMark(char[][] board, int pos, User user) {
         char symbol = user.getSymbol();
         boolean validPosition = false;
