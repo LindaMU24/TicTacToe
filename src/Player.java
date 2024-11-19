@@ -1,5 +1,6 @@
 public class Player extends User{
-    public Player(String name) {
-        super(name, 'X');
+    public Player(String name, char symbol) {
+        super(name,symbol);
     }
 }
+

@@ -8,6 +8,9 @@ public class Game {
     private Player player2;
     private AI computer;
     private boolean isSinglePlayer;
+    private int player1Wins = 0;
+    private int player2Wins = 0;
+    private int computerWins = 0;
 
 
     public Game() {
@@ -44,8 +47,9 @@ public class Game {
                 return false;
         }
     }
-        List<Integer> userPositions = new ArrayList<>();
+        List<Integer> player1Positions = new ArrayList<>();
         List<Integer> computerPositions = new ArrayList<>();
+        List<Integer> player2Positions = new ArrayList<>();
 
 
             public String checkWinner () {
@@ -69,43 +73,52 @@ public class Game {
                 winning.add(cross2);
 
                 for (List<Integer> l : winning) {
-                    if (userPositions.containsAll(l)) {
-                        return "Congratulations! You won!";
-                    } else if (computerPositions.containsAll(l)) {
+                    if (player1Positions.containsAll(l)) {
+                        player1Wins++;
+                        return player1.getName() + ": Congratulations! You won!";
+                    }  else if (isSinglePlayer && computerPositions.containsAll(l)) {
+                        computerWins++;
                         return "Computer wins!";
-                    } else if (userPositions.size() + computerPositions.size() == 9) {
-                        return "Draw!";
+                    } else if (!isSinglePlayer && player2Positions.containsAll(l)) {
+                        player2Wins++;
+                        return player2.getName() + ": Congratulations! You won!";
                     }
                 }
-                return "";
-            }
 
+                if (player1Positions.size() + (isSinglePlayer ? computerPositions.size() : player2Positions.size()) == 9) {
+                    return "Draw!";
+                }
+              return "";
+          }
+
+public void setupGame() {
+    Scanner sc = new Scanner(System.in);
+
+    System.out.println("Choose game mode: 1 for one-player, 2 for two-player");
+    int mode = sc.nextInt();
+    sc.nextLine();
+
+    if (mode == 1) {
+        isSinglePlayer = true;
+        System.out.println("Please enter your name: ");
+        String name = sc.nextLine();
+        player1 = new Player(name, 'X');
+        computer = new AI();
+    } else {
+        isSinglePlayer = false;
+        System.out.println("Player 1, please enter your name: ");
+        String name1 = sc.nextLine();
+        player1 = new Player(name1, 'X');
+
+        System.out.println("Player 2, please enter your name: ");
+        String name2 = sc.nextLine();
+        player2 = new Player(name2, 'O');
+
+    }
+}
 
     public void run() {
         Scanner sc = new Scanner(System.in);
-
-        System.out.println("Choose game mode: 1 for one-player, 2 for two-player");
-        int mode = sc.nextInt();
-        sc.nextLine();
-
-        if (mode == 1) {
-            isSinglePlayer = true;
-            System.out.println("Please enter your name: ");
-            String name = sc.nextLine();
-            player1 = new Player(name);
-            computer = new AI();
-        } else {
-            isSinglePlayer = false;
-            System.out.println("Player 1, please enter your name: ");
-            String name1 = sc.nextLine();
-            player1 = new Player(name1);
-
-            System.out.println("Player 2, please enter your name: ");
-            String name2 = sc.nextLine();
-            player2 = new Player(name2);
-
-        }
-
         Board.printBoard(board);
 
         Random rand = new Random();
@@ -124,10 +137,20 @@ public class Game {
 
         while (true) {
             if (player1Turn) {
-                System.out.println(player1.getName() + ", enter a position to place your mark in (1-9):");
-                int pos = sc.nextInt();
-                placeMark(board, pos, player1);
-                userPositions.add(pos); //Add position to player list
+                boolean validPosition = false;
+                int pos = 0;
+                while (!validPosition) {
+                    System.out.println(player1.getName() + ", enter a position to place your mark in (1-9):");
+                    pos = sc.nextInt();
+
+                    if (isPositionFree(board, pos)) {
+                        placeMark(board, pos, player1);
+                        player1Positions.add(pos);
+                        validPosition = true;
+                    } else {
+                        System.out.println("Position not free. Choose another position (1-9):");
+                    }
+                }
             } else {
                 if (isSinglePlayer) {
                     int pos;
@@ -136,14 +159,24 @@ public class Game {
                     } while (!isPositionFree(board, pos));
                     System.out.println("Computer chose: " + pos);
                     placeMark(board, pos, computer);
-                    computerPositions.add(pos); // Add position to computer list
+                    computerPositions.add(pos);
                 } else {
-                    System.out.println(player2.getName() + ", enter a position to place your mark in (1-9):");
-                    int pos = sc.nextInt();
-                    placeMark(board, pos, player2);
-                    userPositions.add(pos);
+                    boolean validPosition = false;
+                    int pos = 0;
+                    while (!validPosition) {
+                        System.out.println(player2.getName() + ", enter a position to place your mark in (1-9):");
+                        pos = sc.nextInt();
+                        if (isPositionFree(board, pos)) {
+                            placeMark(board, pos, player2);
+                            player2Positions.add(pos);
+                            validPosition = true;
+                        } else {
+                            System.out.println("Position not free. Choose another position (1-9):");
+                        }
+                    }
                 }
             }
+
 
             Board.printBoard(board);
 
@@ -156,9 +189,45 @@ public class Game {
 
             player1Turn = !player1Turn;
         }
+        sc.nextLine();
 
-        System.out.println("Thank you for playing!");
+        boolean playAgain = true;
+
+        while (playAgain) {
+
+
+            System.out.println("Do you want to play again? (yes/no)");
+            String response = sc.nextLine().trim().toLowerCase();
+
+            if (response.equals("yes")) {
+
+                this.board = new char[][]{
+                        {' ', '|', ' ', '|', ' '},
+                        {'-', '+', '-', '+', '-'},
+                        {' ', '|', ' ', '|', ' '},
+                        {'-', '+', '-', '+', '-'},
+                        {' ', '|', ' ', '|', ' '},
+                };
+                player1Positions.clear();
+                computerPositions.clear();
+                player2Positions.clear();
+                run();
+            } else {
+                playAgain = false;
+            }
+
+
+            System.out.println("Game over! Final scores:");
+            System.out.println(player1.getName() + " wins: " + player1Wins);
+            if (isSinglePlayer) {
+                System.out.println("Computer wins: " + computerWins);
+            } else {
+                System.out.println(player2.getName() + " wins: " + player2Wins);
+            }
+            System.out.println("Thanks for playing!");
+        }
     }
+
 
 
     public static void placeMark(char[][] board, int pos, User user) {
@@ -223,7 +292,7 @@ public class Game {
                     break;
                 default:
                     System.out.println("Invalid position. Try again.");
-                    return;
+                    break;
             }
             if (!validPosition) {
                 System.out.println("Position not free. Choose another position (1-9): ");
@@ -232,8 +301,9 @@ public class Game {
             }
         }
     }
+    }
 
-}
+
 
 
 
